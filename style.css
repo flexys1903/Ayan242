@@ -1,0 +1,77 @@
+/* ==========================================
+   GARAJ TEİAŞ // PREMIUM STEALTH CARBON THEME
+   ========================================== */
+
+/* İnce Karbon Matris Dokusu */
+.bg-carbon {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
+    background-size: 16px 16px;
+    background-color: #0a0b0d;
+}
+
+/* Teknik Panel Tasarımları (Mat ve Keskin) */
+.stealth-panel {
+    background: #111317;
+    border: 1px solid #1e222b;
+}
+
+/* Giriş Odaklanma (Focus) Hatları */
+.input-focus {
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+.input-focus:focus {
+    border-color: #dc2626;
+    background-color: #07080a;
+}
+
+/* Premium Yarış Tipi Buton */
+.btn-premium {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-premium:hover {
+    background-color: #b91c1c;
+    filter: brightness(1.1);
+    transform: translateY(-0.5px);
+}
+.btn-premium:active {
+    transform: translateY(0.5px);
+}
+
+/* Sol Oda Listesi Buton Efektleri */
+.room-btn {
+    border-left: 2px solid transparent;
+}
+.room-btn:hover {
+    background-color: #161920 !important;
+    color: #ffffff !important;
+    border-left: 2px solid #3f3f46;
+    padding-left: 14px;
+}
+
+/* Özel İnce Kaydırma Çubuğu */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #dc2626;
+}
+
+/* Animasyonlar */
+.animate-fade-in {
+    animation: panelFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes panelFade {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
