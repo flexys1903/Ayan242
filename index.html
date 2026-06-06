@@ -43,7 +43,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v3.5 SHA256_SECURE</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v4.0 STREAM_UNIFIED</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -68,21 +68,12 @@
                     <div id="userInfo"></div>
                 </div>
 
-                <!-- Odalar Menüsü -->
+                <!-- Odalar Menüsü (Düz Tek Kategori) -->
                 <div class="stealth-panel rounded-xl p-3 space-y-1 shadow-2xl">
-                    <p class="text-[10px] font-mono text-zinc-500 px-3 mb-3 uppercase tracking-widest">YARIŞ ODALARI</p>
-                    <button onclick="filterFeed('all')" id="btn-filter-all" class="w-full flex items-center justify-between px-3 py-3 rounded-lg bg-zinc-900 text-white text-xs font-bold tracking-wider text-left transition-all border-l-2 border-brand">
-                        <span>ALL // TÜM AKIŞ</span>
-                    </button>
-                    <button onclick="filterFeed('Assetto Corsa')" id="btn-filter-ac" class="w-full flex items-center justify-between px-3 py-3 rounded-lg text-zinc-400 hover:bg-zinc-900/50 hover:text-white text-xs font-bold tracking-wider text-left transition-all">
-                        <span>🏎️ ASSETTO CORSA</span>
-                    </button>
-                    <button onclick="filterFeed('BeamNG.drive')" id="btn-filter-beam" class="w-full flex items-center justify-between px-3 py-3 rounded-lg text-zinc-400 hover:bg-zinc-900/50 hover:text-white text-xs font-bold tracking-wider text-left transition-all">
-                        <span>💥 BEAMNG.DRIVE</span>
-                    </button>
-                    <button onclick="filterFeed('CPM 2')" id="btn-filter-cpm" class="w-full flex items-center justify-between px-3 py-3 rounded-lg text-zinc-400 hover:bg-zinc-900/50 hover:text-white text-xs font-bold tracking-wider text-left transition-all">
-                        <span>🅿️ CPM 2</span>
-                    </button>
+                    <p class="text-[10px] font-mono text-zinc-500 px-3 mb-3 uppercase tracking-widest">KANAL LİSTESİ</p>
+                    <div class="w-full flex items-center justify-between px-3 py-3 rounded-lg bg-zinc-900 text-white text-xs font-bold tracking-wider text-left border-l-2 border-brand">
+                        <span>🌐 GENEL AKIŞ (ALL)</span>
+                    </div>
                 </div>
             </aside>
 
@@ -135,16 +126,8 @@
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-[10px] font-mono text-zinc-400 mb-1.5 uppercase tracking-wider">Platform / Oyun</label>
-                    <select id="postGame" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none input-focus text-zinc-300 font-mono">
-                        <option value="Assetto Corsa">Assetto Corsa</option>
-                        <option value="BeamNG.drive">BeamNG.drive</option>
-                        <option value="CPM 2">CPM 2</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-mono text-zinc-400 mb-1.5 uppercase tracking-wider">Araç Modeli / Setup Adı</label>
-                    <input type="text" id="postTitle" placeholder="Örn: BMW E92 - Hellcat V8 Setup" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none input-focus text-white">
+                    <label class="block text-[10px] font-mono text-zinc-400 mb-1.5 uppercase tracking-wider">Gönderi Başlığı / Setup Detayı</label>
+                    <input type="text" id="postTitle" placeholder="Örn: BMW E92 setup paylaşıyorum kanka" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-sm focus:outline-none input-focus text-white">
                 </div>
                 
                 <div>
@@ -207,9 +190,8 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT ENGINE WITH SHA-256 SHIELD -->
+    <!-- JAVASCRIPT ENGINE -->
     <script>
-        // 🔒 JAVASCRIPT SHA-256 KRİPTOGRAFİ FONKSİYONU
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);                    
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -226,17 +208,22 @@
 
         let userDetectedIP = "Sorgulanıyor...";
         let isRegisterMode = false;
-        let currentFilter = 'all';
 
         const defaultPosts = [
-          
+            {
+                id: 1717500000000,
+                username: "1903",
+                title: "BMW E92 - HELLCAT V8 SWAP // GARAJ AKIŞ BAŞLADI",
+                img: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop",
+                voltage: 1903,
+                time: "06.06.2026"
+            }
         ];
 
-        // BAŞLANGIÇ DEĞERLERİ (Şifreler önceden hash'lenmiş olarak yükleniyor!)
-        // "1903" şifresinin SHA-256 karşılığı: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d"
         let backupPosts = [...defaultPosts];
         let backupUsers = {
-           
+            "utku": { password: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d", avatar: defaultAvatar },
+            "1903": { password: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d", avatar: defaultAvatar }
         };
 
         if(!localStorage.getItem('garaj_posts_db')) {
@@ -253,7 +240,7 @@
 
         let posts = JSON.parse(localStorage.getItem('garaj_posts_db'));
 
-        // STORAGE MANİPÜLASYON DEDEKTÖRÜ
+        // STORAGE MANİPÜLASYON KORUMASI
         window.addEventListener('storage', (e) => {
             if (e.key === 'garaj_posts_db' || e.key === 'garaj_users_db') {
                 localStorage.setItem('garaj_posts_db', JSON.stringify(backupPosts));
@@ -345,7 +332,7 @@
                         logPanel.style.color = '#ff3333';
                     }
                 } else {
-                    logPanel.innerHTML = `[INFO] Standart kullanıcı @${currentUser} bağlı. Veriler şifreli.`;
+                    logPanel.innerHTML = `[INFO] Standart kullanıcı @${currentUser} bağlı. Tek akış devrede.`;
                     logPanel.style.color = '#888';
                 }
             } else {
@@ -354,7 +341,7 @@
                     <button onclick="openAuthModal(true)" class="bg-brand hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 font-mono uppercase tracking-wider shadow-lg shadow-brand/10">KAYIT OL</button>
                 `;
                 userInfo.innerHTML = `<p class="text-zinc-600 text-[11px] font-mono tracking-wider">DISCONNECTED // NO_AUTH</p>`;
-                logPanel.innerHTML = `[SYSTEM] Misafir modu. Şifreleme katmanı devrede.`;
+                logPanel.innerHTML = `[SYSTEM] Misafir modu. Tek kategori akışı aktif.`;
                 logPanel.style.color = '#555';
             }
         }
@@ -362,18 +349,17 @@
         function renderFeed() {
             const container = document.getElementById('feedContainer');
             container.innerHTML = "";
-            const filtered = currentFilter === 'all' ? posts : posts.filter(p => p.game === currentFilter);
             const usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
 
-            if(filtered.length === 0) {
-                container.innerHTML = `<div class="stealth-panel rounded-xl p-12 text-center text-zinc-500 font-mono text-xs tracking-wider">⚠️ BU KANALDA MEDYA TELEMETRİSİ BULUNAMADI.</div>`;
+            if(posts.length === 0) {
+                container.innerHTML = `<div class="stealth-panel rounded-xl p-12 text-center text-zinc-500 font-mono text-xs tracking-wider">⚠️ GARAJ AKIŞINDA MEDYA BULUNAMADI. İLK SEN PAYLAŞ KANKA!</div>`;
                 return;
             }
 
             const currentUser = localStorage.getItem('garaj_active_user') || '';
             const isUserAdmin = (currentUser.toLowerCase() === ADMIN_USERNAME.toLowerCase() && isHardwareVerified());
 
-            [...filtered].reverse().forEach(post => {
+            [...posts].reverse().forEach(post => {
                 const deleteButtonHTML = isUserAdmin 
                     ? `<button onclick="deletePost(${post.id})" class="text-[9px] font-mono bg-brand/10 hover:bg-brand text-brand hover:text-white border border-brand/30 px-2 py-1 rounded transition-all tracking-wider uppercase font-bold">DELETE // SİL</button>` 
                     : '';
@@ -391,7 +377,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 ${deleteButtonHTML}
-                                <span class="text-[10px] font-mono bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-md text-zinc-400 font-bold tracking-widest uppercase">${post.game}</span>
+                                <span class="text-[10px] font-mono bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-md text-zinc-500 font-bold tracking-widest uppercase">MEDYA</span>
                             </div>
                         </div>
                         <div class="relative bg-zinc-950 overflow-hidden border-b border-zinc-900">
@@ -420,13 +406,12 @@
         function closeMediaModal() { document.getElementById('mediaModal').style.display = 'none'; }
 
         function submitPost() {
-            const game = document.getElementById('postGame').value;
             const title = document.getElementById('postTitle').value.trim();
             const imgBase64 = document.getElementById('postImgBase64').value;
             const currentUser = localStorage.getItem('garaj_active_user') || 'Ziyaretçi';
             if(!title || !imgBase64) { alert("Başlık ve Dosya seçimi zorunlu kanka!"); return; }
 
-            posts.push({ id: Date.now(), username: currentUser, game: game, title: title, img: imgBase64, voltage: 0, time: new Date().toLocaleDateString('tr-TR') });
+            posts.push({ id: Date.now(), username: currentUser, title: title, img: imgBase64, voltage: 0, time: new Date().toLocaleDateString('tr-TR') });
             try { localStorage.setItem('garaj_posts_db', JSON.stringify(posts)); syncBackup(); } 
             catch (e) { alert("Resim boyutu çok büyük!"); return; }
             closeMediaModal(); renderFeed();
@@ -448,10 +433,7 @@
             const newPass = document.getElementById('editPassword').value.trim();
 
             if(newAvatarBase64) { usersDb[currentUser].avatar = newAvatarBase64; }
-            if(newPass) { 
-                // 🔒 Düzenleme şifresi hash'leniyor
-                usersDb[currentUser].password = await sha256(newPass); 
-            }
+            if(newPass) { usersDb[currentUser].password = await sha256(newPass); }
 
             try { localStorage.setItem('garaj_users_db', JSON.stringify(usersDb)); syncBackup(); } 
             catch (e) { alert("Hata oluştu!"); return; }
@@ -474,27 +456,22 @@
         }
         function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
-        // 🔒 KRİPTOLU GİRİŞ / KAYIT MOTORU
         async function submitAuth() {
             const user = document.getElementById('authUsername').value.trim();
             const pass = document.getElementById('authPassword').value.trim();
             let usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
 
             if(!user || !pass) { alert("Alanları doldur kanka!"); return; }
-
-            // Kullanıcının yazdığı şifreyi anında siber koda (Hash) çeviriyoruz kanka
             const hashedPass = await sha256(pass);
 
             if(isRegisterMode) {
                 if(usersDb[user]) { alert("Bu kullanıcı adı zaten alınmış!"); return; }
-                // DB'ye asla düz şifre yazmıyoruz, sadece hash'i yazıyoruz kanka!
                 usersDb[user] = { password: hashedPass, avatar: defaultAvatar };
                 localStorage.setItem('garaj_users_db', JSON.stringify(usersDb));
                 syncBackup();
-                alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
+                alert("Kayıt başarılı! Giriş yapabilirsin.");
                 openAuthModal(false);
             } else {
-                // Giriş kontrolü yapılırken de hash kodları karşılaştırılıyor
                 if(usersDb[user] && (usersDb[user].password === hashedPass || usersDb[user] === hashedPass)) {
                     localStorage.setItem('garaj_active_user', user);
                     closeAuthModal();
@@ -520,20 +497,6 @@
         function giveVoltage(postId) {
             const post = posts.find(p => p.id === postId);
             if(post) { post.voltage += 1; localStorage.setItem('garaj_posts_db', JSON.stringify(posts)); syncBackup(); renderFeed(); }
-        }
-
-        function filterFeed(gameName) {
-            currentFilter = gameName;
-            const buttons = ['all', 'ac', 'beam', 'cpm'];
-            buttons.forEach(b => {
-                document.getElementById(`btn-filter-${b}`).classList.remove('bg-zinc-900', 'text-white', 'border-l-2', 'border-brand');
-                document.getElementById(`btn-filter-${b}`).classList.add('text-zinc-400');
-            });
-            const currentBtnMap = { 'all': 'all', 'Assetto Corsa': 'ac', 'BeamNG.drive': 'beam', 'CPM 2': 'cpm' };
-            const activeId = `btn-filter-${currentBtnMap[gameName]}`;
-            document.getElementById(activeId).classList.add('bg-zinc-900', 'text-white', 'border-l-2', 'border-brand');
-            document.getElementById(activeId).classList.remove('text-zinc-400');
-            renderFeed();
         }
 
         function logout() { localStorage.removeItem('garaj_active_user'); init(); }
