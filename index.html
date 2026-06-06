@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GARAJ TEİAŞ // Cloud Edition</title>
     
+    <!-- TAB LOGOSU (FAVICON) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a0b0d'/><circle cx='50' cy='50' r='30' stroke='%23ffffff' stroke-width='6' fill='none'/><circle cx='50' cy='50' r='20' stroke='%23dc2626' stroke-width='4' fill='none'/><path d='M50 10 L50 90 M10 50 L90 50' stroke='%23ffffff' stroke-width='4'/><circle cx='50' cy='50' r='6' fill='%23ffffff'/></svg>">
 
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
@@ -40,12 +43,13 @@
 </head>
 <body class="bg-darkBg text-zinc-200 font-sans antialiased bg-carbon selection:bg-brand selection:text-white">
 
+    <!-- TOP NAVIGATION -->
     <nav class="bg-panelBg/90 backdrop-blur-md border-b border-zinc-800/80 sticky top-0 z-50 px-4 lg:px-8 shadow-xl">
         <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.2 CLOUD_TALK</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.3 LIVE_SYNC</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -57,9 +61,11 @@
         </div>
     </nav>
 
+    <!-- ANA DASHBOARD DÜZENİ -->
     <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
+            <!-- SOL PANEL -->
             <aside class="space-y-6">
                 <div class="stealth-panel rounded-xl p-5 shadow-2xl relative overflow-hidden">
                     <p class="text-[10px] font-mono text-zinc-500 mb-4 uppercase tracking-widest border-b border-zinc-800/60 pb-1">TELEMETRİ MERKEZİ</p>
@@ -74,6 +80,7 @@
                 </div>
             </aside>
 
+            <!-- SAĞ KISIM -->
             <section class="col-span-1 lg:col-span-3 space-y-6">
                 <div id="feedContainer" class="space-y-6"></div>
 
@@ -84,6 +91,7 @@
         </div>
     </main>
 
+    <!-- MODAL: GİRİŞ YAP & KAYIT OL -->
     <div id="authModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="stealth-panel bg-panelBg w-full max-w-md rounded-xl p-6 border border-zinc-800 shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
@@ -111,6 +119,7 @@
         </div>
     </div>
 
+    <!-- MODAL: YENİ GÖNDERİ -->
     <div id="mediaModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="stealth-panel bg-panelBg w-full max-w-lg rounded-xl p-6 border border-zinc-800 shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
@@ -142,6 +151,7 @@
         </div>
     </div>
 
+    <!-- MODAL: HESAP AYARLARI -->
     <div id="settingsModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="stealth-panel bg-panelBg w-full max-w-md rounded-xl p-6 border border-zinc-800 shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
@@ -178,6 +188,7 @@
         </div>
     </div>
 
+    <!-- JAVASCRIPT ENGINE -->
     <script>
         // --- !!! SUPABASE BAĞLANTI AYARLARI !!! ---
         const SUPABASE_URL = "https://legvpdyyizsqqqafcyhu.supabase.co"; 
@@ -336,7 +347,6 @@
 
         async function renderFeed() {
             const container = document.getElementById('feedContainer');
-            container.innerHTML = `<div class="text-center text-zinc-500 font-mono text-xs py-4">⏳ Buluttan veriler senkronize ediliyor...</div>`;
             
             let { data: posts, error } = await _supabase.from('garaj_posts').select('*').order('id', { ascending: false });
             container.innerHTML = "";
@@ -389,7 +399,7 @@
                     ? `
                     <div class="mt-4 pt-3 border-t border-zinc-900 flex gap-2">
                         <input type="text" id="commentInput_${post.id}" placeholder="Hatta bir yorum fırlat..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none input-focus text-white">
-                        <button onclick="submitComment(${post.id}, '${post.comments ? borderEscape(JSON.stringify(postComments)) : '[]'}')" class="bg-zinc-900 hover:bg-brand text-zinc-400 hover:text-white px-3 py-2 rounded-lg text-xs font-mono font-bold transition-all uppercase">GÖNDER</button>
+                        <button onclick="submitComment(${post.id})" class="bg-zinc-900 hover:bg-brand text-zinc-400 hover:text-white px-3 py-2 rounded-lg text-xs font-mono font-bold transition-all uppercase">GÖNDER</button>
                     </div>
                     `
                     : `<p class="text-[10px] font-mono text-zinc-600 text-center mt-3 pt-2 border-t border-zinc-900/60">Yorum yazmak için sisteme bağlanmalısın kanka.</p>`;
@@ -421,6 +431,7 @@
                             </button>
                             <span class="text-xs text-zinc-500 font-mono">💬 ${postComments.length} Yorum</span>
                         </div>
+                        <!-- YORUM ALANI CONTAINER -->
                         <div class="p-4 bg-zinc-950/30">
                             <div class="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                                 ${commentsListHTML}
@@ -432,12 +443,7 @@
             });
         }
 
-        // Tırnak işaretlerinin HTML attribute içinde patlamasını önleyen yardımcı fonksiyon
-        function borderEscape(str) {
-            return str.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-        }
-
-        async function submitComment(postId, oldCommentsJSON) {
+        async function submitComment(postId) {
             const input = document.getElementById(`commentInput_${postId}`);
             const commentText = input.value.trim();
             const currentUser = localStorage.getItem('garaj_active_user');
@@ -445,12 +451,13 @@
             if(!currentUser) { alert("Önce giriş yapmalısın kanka!"); return; }
             if(!commentText) return;
 
+            // En güncel post verisini doğrudan veritabanından çek (Hizalama hatasını engeller)
+            let { data: currentPostData } = await _supabase.from('garaj_posts').select('comments').eq('id', postId).single();
+            
             let commentsArray = [];
-            try {
-                // HTML'den escaped gelen stringi geri çözüp array yapıyoruz
-                const cleanedJSON = oldCommentsJSON.replace(/&quot;/g, '"').replace(/&apos;/g, "'");
-                commentsArray = JSON.parse(cleanedJSON);
-            } catch(e) { commentsArray = []; }
+            if (currentPostData && currentPostData.comments) {
+                commentsArray = typeof currentPostData.comments === 'string' ? JSON.parse(currentPostData.comments) : currentPostData.comments;
+            }
 
             // Yeni yorum objesini ekle
             const newCommentObj = {
@@ -465,11 +472,11 @@
             
             if(error) {
                 alert("Yorum hatta gönderilirken bulut hatası oluştu!");
-                console.error(error);
                 return;
             }
 
             input.value = "";
+            await fetchUsersCache(); // Kullanıcı listesini tazele
             await renderFeed();
         }
 
@@ -495,13 +502,14 @@
                 img: imgBase64, 
                 voltage: 0, 
                 time: new Date().toLocaleDateString('tr-TR'),
-                comments: [] // Yeni postlar sıfır yorumla başlar
+                comments: []
             };
 
             const { error } = await _supabase.from('garaj_posts').insert([newPost]);
-            if(error) { alert("Veritabanına yazılırken hata oluştu!"); console.error(error); return; }
+            if(error) { alert("Veritabanına yazılırken hata oluştu!"); return; }
             
             closeMediaModal(); 
+            await fetchUsersCache();
             await renderFeed();
         }
 
@@ -553,12 +561,14 @@
             }
             if (confirm("Silmek istediğinize emin misiniz?")) {
                 await _supabase.from('garaj_posts').delete().eq('id', postId);
+                await fetchUsersCache();
                 await renderFeed();
             }
         }
 
         async function giveVoltage(postId, currentVoltage) {
             await _supabase.from('garaj_posts').update({ voltage: currentVoltage + 1 }).eq('id', postId);
+            await fetchUsersCache();
             await renderFeed();
         }
 
