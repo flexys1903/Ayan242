@@ -43,7 +43,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v4.0 STREAM_UNIFIED</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v4.2 DB_SYNC_FIX</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -68,7 +68,7 @@
                     <div id="userInfo"></div>
                 </div>
 
-                <!-- Odalar Menüsü (Düz Tek Kategori) -->
+                <!-- Odalar Menüsü -->
                 <div class="stealth-panel rounded-xl p-3 space-y-1 shadow-2xl">
                     <p class="text-[10px] font-mono text-zinc-500 px-3 mb-3 uppercase tracking-widest">KANAL LİSTESİ</p>
                     <div class="w-full flex items-center justify-between px-3 py-3 rounded-lg bg-zinc-900 text-white text-xs font-bold tracking-wider text-left border-l-2 border-brand">
@@ -201,7 +201,7 @@
 
         const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371717a'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
         
-        const ADMIN_USERNAME = "1 9 0 3";
+        const ADMIN_USERNAME = "Rafa27";
         const MY_SCREEN_WIDTH = 1600; 
         const MY_SCREEN_HEIGHT = 900;
         const MY_ALLOWED_IP = "85.107.100.91";
@@ -226,35 +226,33 @@
             "1903": { password: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d", avatar: defaultAvatar }
         };
 
+        // DB ÇEKİRDEK AYARLARI
         if(!localStorage.getItem('garaj_posts_db')) {
             localStorage.setItem('garaj_posts_db', JSON.stringify(defaultPosts));
-        } else {
-            backupPosts = JSON.parse(localStorage.getItem('garaj_posts_db'));
         }
-        
         if(!localStorage.getItem('garaj_users_db')) {
             localStorage.setItem('garaj_users_db', JSON.stringify(backupUsers));
-        } else {
-            backupUsers = JSON.parse(localStorage.getItem('garaj_users_db'));
         }
 
-        let posts = JSON.parse(localStorage.getItem('garaj_posts_db'));
+        // Global Değişkenleri Doğrudan LocalStorage ile Senkronize Etme Fonksiyonu (KRİTİK ÇÖZÜM)
+        let posts = [];
+        function syncFromStorage() {
+            posts = JSON.parse(localStorage.getItem('garaj_posts_db')) || [];
+            backupPosts = [...posts];
+            backupUsers = JSON.parse(localStorage.getItem('garaj_users_db')) || {};
+        }
+        
+        // İlk yükleme
+        syncFromStorage();
 
-        // STORAGE MANİPÜLASYON KORUMASI
+        // STORAGE MANİPÜLASYON KORUMASI (Farklı sekmeler arası senkronu da korur)
         window.addEventListener('storage', (e) => {
             if (e.key === 'garaj_posts_db' || e.key === 'garaj_users_db') {
-                localStorage.setItem('garaj_posts_db', JSON.stringify(backupPosts));
-                localStorage.setItem('garaj_users_db', JSON.stringify(backupUsers));
-                posts = [...backupPosts];
+                syncFromStorage();
                 renderFeed();
                 renderAuthUI();
             }
         });
-
-        function syncBackup() {
-            backupPosts = JSON.parse(localStorage.getItem('garaj_posts_db'));
-            backupUsers = JSON.parse(localStorage.getItem('garaj_users_db'));
-        }
 
         function handleFileSelect(input, labelId, hiddenInputId) {
             const file = input.files[0];
@@ -284,7 +282,7 @@
             init();
         }
 
-        function init() { renderAuthUI(); renderFeed(); }
+        function init() { syncFromStorage(); renderAuthUI(); renderFeed(); }
 
         function isHardwareVerified() {
             return (window.screen.width === MY_SCREEN_WIDTH && window.screen.height === MY_SCREEN_HEIGHT && userDetectedIP === MY_ALLOWED_IP.trim());
@@ -295,7 +293,7 @@
             const userInfo = document.getElementById('userInfo');
             const currentUser = localStorage.getItem('garaj_active_user') || null;
             const logPanel = document.getElementById('securityLog');
-            const usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
+            const usersDb = JSON.parse(localStorage.getItem('garaj_users_db')) || {};
 
             if(currentUser) {
                 const isUtku = (currentUser.toLowerCase() === ADMIN_USERNAME.toLowerCase());
@@ -349,7 +347,7 @@
         function renderFeed() {
             const container = document.getElementById('feedContainer');
             container.innerHTML = "";
-            const usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
+            const usersDb = JSON.parse(localStorage.getItem('garaj_users_db')) || {};
 
             if(posts.length === 0) {
                 container.innerHTML = `<div class="stealth-panel rounded-xl p-12 text-center text-zinc-500 font-mono text-xs tracking-wider">⚠️ GARAJ AKIŞINDA MEDYA BULUNAMADI. İLK SEN PAYLAŞ KANKA!</div>`;
@@ -411,10 +409,28 @@
             const currentUser = localStorage.getItem('garaj_active_user') || 'Ziyaretçi';
             if(!title || !imgBase64) { alert("Başlık ve Dosya seçimi zorunlu kanka!"); return; }
 
-            posts.push({ id: Date.now(), username: currentUser, title: title, img: imgBase64, voltage: 0, time: new Date().toLocaleDateString('tr-TR') });
-            try { localStorage.setItem('garaj_posts_db', JSON.stringify(posts)); syncBackup(); } 
+            // Önce güncel veriyi LocalStorage'dan çekiyoruz ki diğer hesapların attıkları silinmesin
+            let currentPosts = JSON.parse(localStorage.getItem('garaj_posts_db')) || [];
+            
+            // Yeni gönderiyi listeye ekliyoruz
+            currentPosts.push({ 
+                id: Date.now(), 
+                username: currentUser, 
+                title: title, 
+                img: imgBase64, 
+                voltage: 0, 
+                time: new Date().toLocaleDateString('tr-TR') 
+            });
+
+            try { 
+                localStorage.setItem('garaj_posts_db', JSON.stringify(currentPosts)); 
+                // 🔄 Tam Eşitleme: Hem RAM'deki posts listesini hem de arayüzü anında eşitliyoruz
+                syncFromStorage();
+            } 
             catch (e) { alert("Resim boyutu çok büyük!"); return; }
-            closeMediaModal(); renderFeed();
+            
+            closeMediaModal(); 
+            renderFeed();
         }
 
         function openProfileModal() {
@@ -428,14 +444,17 @@
 
         async function submitProfileUpdate() {
             const currentUser = localStorage.getItem('garaj_active_user'); if(!currentUser) return;
-            let usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
+            let usersDb = JSON.parse(localStorage.getItem('garaj_users_db')) || {};
             const newAvatarBase64 = document.getElementById('profileAvatarBase64').value;
             const newPass = document.getElementById('editPassword').value.trim();
 
             if(newAvatarBase64) { usersDb[currentUser].avatar = newAvatarBase64; }
             if(newPass) { usersDb[currentUser].password = await sha256(newPass); }
 
-            try { localStorage.setItem('garaj_users_db', JSON.stringify(usersDb)); syncBackup(); } 
+            try { 
+                localStorage.setItem('garaj_users_db', JSON.stringify(usersDb)); 
+                syncFromStorage(); 
+            } 
             catch (e) { alert("Hata oluştu!"); return; }
             alert("Profil başarıyla güncellendi!"); closeProfileModal(); init();
         }
@@ -459,7 +478,7 @@
         async function submitAuth() {
             const user = document.getElementById('authUsername').value.trim();
             const pass = document.getElementById('authPassword').value.trim();
-            let usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
+            let usersDb = JSON.parse(localStorage.getItem('garaj_users_db')) || {};
 
             if(!user || !pass) { alert("Alanları doldur kanka!"); return; }
             const hashedPass = await sha256(pass);
@@ -468,7 +487,7 @@
                 if(usersDb[user]) { alert("Bu kullanıcı adı zaten alınmış!"); return; }
                 usersDb[user] = { password: hashedPass, avatar: defaultAvatar };
                 localStorage.setItem('garaj_users_db', JSON.stringify(usersDb));
-                syncBackup();
+                syncFromStorage();
                 alert("Kayıt başarılı! Giriş yapabilirsin.");
                 openAuthModal(false);
             } else {
@@ -488,15 +507,23 @@
                 alert("❌ ACCESS DENIED: Güvenlik duvarı engeli!"); return; 
             }
             if (confirm("Silmek istediğinize emin misiniz?")) {
-                posts = posts.filter(p => p.id !== postId);
-                localStorage.setItem('garaj_posts_db', JSON.stringify(posts));
-                syncBackup(); renderFeed();
+                let currentPosts = JSON.parse(localStorage.getItem('garaj_posts_db')) || [];
+                currentPosts = currentPosts.filter(p => p.id !== postId);
+                localStorage.setItem('garaj_posts_db', JSON.stringify(currentPosts));
+                syncFromStorage(); 
+                renderFeed();
             }
         }
 
         function giveVoltage(postId) {
-            const post = posts.find(p => p.id === postId);
-            if(post) { post.voltage += 1; localStorage.setItem('garaj_posts_db', JSON.stringify(posts)); syncBackup(); renderFeed(); }
+            let currentPosts = JSON.parse(localStorage.getItem('garaj_posts_db')) || [];
+            const post = currentPosts.find(p => p.id === postId);
+            if(post) { 
+                post.voltage += 1; 
+                localStorage.setItem('garaj_posts_db', JSON.stringify(currentPosts)); 
+                syncFromStorage(); 
+                renderFeed(); 
+            }
         }
 
         function logout() { localStorage.removeItem('garaj_active_user'); init(); }
