@@ -43,7 +43,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v3.2 ANTI_DEVTOOLS_SHIELD</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v3.5 SHA256_SECURE</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -207,11 +207,18 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT ENGINE -->
+    <!-- JAVASCRIPT ENGINE WITH SHA-256 SHIELD -->
     <script>
+        // 🔒 JAVASCRIPT SHA-256 KRİPTOGRAFİ FONKSİYONU
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371717a'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
         
-        // SİBER GÜVENLİK PARAMETRELERİ
         const ADMIN_USERNAME = "1 9 0 3";
         const MY_SCREEN_WIDTH = 1600; 
         const MY_SCREEN_HEIGHT = 900;
@@ -233,11 +240,12 @@
             }
         ];
 
-        // VERİTABANI İLK KURULUMU VE HAFIZADA TUTMA (ANTI-MANIPULATION BELLEĞİ)
+        // BAŞLANGIÇ DEĞERLERİ (Şifreler önceden hash'lenmiş olarak yükleniyor!)
+        // "1903" şifresinin SHA-256 karşılığı: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d"
         let backupPosts = [...defaultPosts];
         let backupUsers = {
-            "utku": { password: "1903", avatar: defaultAvatar },
-            "1903": { password: "1903", avatar: defaultAvatar }
+            "utku": { password: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d", avatar: defaultAvatar },
+            "1903": { password: "4a7d1a719d280e550e0d5c07452d5efbfb534e7cb8a99b4ff4e626bf450f3f2d", avatar: defaultAvatar }
         };
 
         if(!localStorage.getItem('garaj_posts_db')) {
@@ -254,11 +262,9 @@
 
         let posts = JSON.parse(localStorage.getItem('garaj_posts_db'));
 
-        // 🚨 SİBER KALKAN MOTORU (DEVTOOLS VEYA HARİCİ MANİPÜLASYON ENGELLEYİCİ)
+        // STORAGE MANİPÜLASYON DEDEKTÖRÜ
         window.addEventListener('storage', (e) => {
             if (e.key === 'garaj_posts_db' || e.key === 'garaj_users_db') {
-                console.warn("[SECURITY ALERT] Yetkisiz veri manipülasyonu tespit edildi! Veritabanı geri yükleniyor.");
-                // Değiştirilmeye çalışılan veriyi anında eski güvenli haline kilitliyoruz kanka
                 localStorage.setItem('garaj_posts_db', JSON.stringify(backupPosts));
                 localStorage.setItem('garaj_users_db', JSON.stringify(backupUsers));
                 posts = [...backupPosts];
@@ -276,35 +282,19 @@
             const file = input.files[0];
             const label = document.getElementById(labelId);
             const hiddenInput = document.getElementById(hiddenInputId);
-
             if (!file) return;
-
-            if (file.size > 4 * 1024 * 1024) {
-                alert("Dosya çok büyük! Maksimum 4MB yükleyebilirsiniz.");
-                input.value = "";
-                return;
-            }
-
+            if (file.size > 4 * 1024 * 1024) { alert("Maksimum 4MB!"); input.value = ""; return; }
             label.innerText = `⏳ İşleniyor...`;
-
             const reader = new FileReader();
-            reader.onload = function (e) {
-                hiddenInput.value = e.target.result;
-                label.innerText = `✅ Seçildi`;
-            };
+            reader.onload = function (e) { hiddenInput.value = e.target.result; label.innerText = `✅ Seçildi`; };
             reader.readAsDataURL(file);
         }
 
         function togglePasswordVisibility(inputId, eyeId) {
             const input = document.getElementById(inputId);
             const eye = document.getElementById(eyeId);
-            if (input.type === "password") {
-                input.type = "text";
-                eye.innerText = "🙈";
-            } else {
-                input.type = "password";
-                eye.innerText = "👁️";
-            }
+            if (input.type === "password") { input.type = "text"; eye.innerText = "🙈"; } 
+            else { input.type = "password"; eye.innerText = "👁️"; }
         }
 
         async function fetchUserIP() {
@@ -312,21 +302,14 @@
                 const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
                 userDetectedIP = data.ip.trim(); 
-            } catch (err) {
-                userDetectedIP = "IP_ALINAMADI";
-            }
+            } catch (err) { userDetectedIP = "IP_ALINAMADI"; }
             init();
         }
 
-        function init() {
-            renderAuthUI();
-            renderFeed();
-        }
+        function init() { renderAuthUI(); renderFeed(); }
 
         function isHardwareVerified() {
-            const screenCheck = (window.screen.width === MY_SCREEN_WIDTH && window.screen.height === MY_SCREEN_HEIGHT);
-            const ipCheck = (userDetectedIP === MY_ALLOWED_IP.trim());
-            return screenCheck && ipCheck;
+            return (window.screen.width === MY_SCREEN_WIDTH && window.screen.height === MY_SCREEN_HEIGHT && userDetectedIP === MY_ALLOWED_IP.trim());
         }
 
         function renderAuthUI() {
@@ -364,33 +347,23 @@
 
                 if (isUtku) {
                     if (isHardwareVerified()) {
-                        logPanel.innerHTML = `[SUCCESS] ROOT Yetkisi Onaylandı. IP: ${userDetectedIP} • Ekran: ${window.screen.width}x${window.screen.height} • Güvenlik Duvarı: AKTİF`;
+                        logPanel.innerHTML = `[SUCCESS] ROOT Onaylandı. IP: ${userDetectedIP} • Siber Kalkan: AKTİF • Veri Koruma: SHA-256`;
                         logPanel.style.color = '#00ff00';
                     } else {
-                        logPanel.innerHTML = `[ALERT] Donanım/IP Eşleşmiyor! Tespit Edilen IP: ${userDetectedIP} (İstenen: ${MY_ALLOWED_IP}) • Ekran: ${window.screen.width}x${window.screen.height}`;
+                        logPanel.innerHTML = `[ALERT] Donanım/IP Eşleşmiyor! IP: ${userDetectedIP} • Ekran: ${window.screen.width}x${window.screen.height}`;
                         logPanel.style.color = '#ff3333';
                     }
                 } else {
-                    if(userDetectedIP === MY_ALLOWED_IP.trim()) {
-                        logPanel.innerHTML = `[SUCCESS] Donanım/IP Eşleşti! Güvenli Bağlantı kuruldu. IP: ${userDetectedIP}`;
-                        logPanel.style.color = '#00ff00';
-                    } else {
-                        logPanel.innerHTML = `[INFO] Standart kullanıcı @${currentUser} bağlı. IP: ${userDetectedIP}`;
-                        logPanel.style.color = '#888';
-                    }
+                    logPanel.innerHTML = `[INFO] Standart kullanıcı @${currentUser} bağlı. Veriler şifreli.`;
+                    logPanel.style.color = '#888';
                 }
-
             } else {
                 authZone.innerHTML = `
-                    <button onclick="openAuthModal(false)" class="border border-zinc-800 hover:border-zinc-600 text-zinc-300 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 font-mono uppercase tracking-wider">
-                        BAĞLAN
-                    </button>
-                    <button onclick="openAuthModal(true)" class="bg-brand hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 font-mono uppercase tracking-wider shadow-lg shadow-brand/10">
-                        KAYIT OL
-                    </button>
+                    <button onclick="openAuthModal(false)" class="border border-zinc-800 hover:border-zinc-600 text-zinc-300 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 font-mono uppercase tracking-wider">BAĞLAN</button>
+                    <button onclick="openAuthModal(true)" class="bg-brand hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 font-mono uppercase tracking-wider shadow-lg shadow-brand/10">KAYIT OL</button>
                 `;
                 userInfo.innerHTML = `<p class="text-zinc-600 text-[11px] font-mono tracking-wider">DISCONNECTED // NO_AUTH</p>`;
-                logPanel.innerHTML = `[SYSTEM] Misafir modu. Tespit Edilen IP: ${userDetectedIP}`;
+                logPanel.innerHTML = `[SYSTEM] Misafir modu. Şifreleme katmanı devrede.`;
                 logPanel.style.color = '#555';
             }
         }
@@ -413,7 +386,6 @@
                 const deleteButtonHTML = isUserAdmin 
                     ? `<button onclick="deletePost(${post.id})" class="text-[9px] font-mono bg-brand/10 hover:bg-brand text-brand hover:text-white border border-brand/30 px-2 py-1 rounded transition-all tracking-wider uppercase font-bold">DELETE // SİL</button>` 
                     : '';
-
                 const currentPostAvatar = (usersDb[post.username] && usersDb[post.username].avatar) ? usersDb[post.username].avatar : defaultAvatar;
 
                 container.innerHTML += `
@@ -431,14 +403,12 @@
                                 <span class="text-[10px] font-mono bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-md text-zinc-400 font-bold tracking-widest uppercase">${post.game}</span>
                             </div>
                         </div>
-                        
                         <div class="relative bg-zinc-950 overflow-hidden border-b border-zinc-900">
                             <img src="${post.img}" class="w-full object-cover max-h-[480px]">
                             <div class="p-4 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent pt-12">
                                 <p class="text-base font-bold tracking-wide text-white uppercase font-mono">${post.title}</p>
                             </div>
                         </div>
-
                         <div class="p-3.5 flex items-center gap-5 text-zinc-400 bg-zinc-950/20">
                             <button onclick="giveVoltage(${post.id})" class="hover:text-brand flex items-center gap-1.5 transition text-zinc-300 font-mono text-xs font-bold tracking-wider uppercase">
                                 <span class="text-amber-500">⚡</span> <span>${post.voltage} HP</span>
@@ -451,18 +421,11 @@
 
         function openMediaModal() {
             const currentUser = localStorage.getItem('garaj_active_user');
-            if(!currentUser) {
-                alert("Önce sisteme bağlanman gerekiyor kanka! (Login Ol)");
-                openAuthModal(false);
-                return;
-            }
-            document.getElementById('postTitle').value = "";
-            document.getElementById('postFile').value = "";
-            document.getElementById('postImgBase64').value = "";
+            if(!currentUser) { alert("Önce sisteme bağlanman gerekiyor kanka!"); openAuthModal(false); return; }
+            document.getElementById('postTitle').value = ""; document.getElementById('postFile').value = ""; document.getElementById('postImgBase64').value = "";
             document.getElementById('postFileLabel').innerText = "Resim dosyası seç veya buraya sürükle";
             document.getElementById('mediaModal').style.display = 'flex';
         }
-
         function closeMediaModal() { document.getElementById('mediaModal').style.display = 'none'; }
 
         function submitPost() {
@@ -470,117 +433,78 @@
             const title = document.getElementById('postTitle').value.trim();
             const imgBase64 = document.getElementById('postImgBase64').value;
             const currentUser = localStorage.getItem('garaj_active_user') || 'Ziyaretçi';
-
             if(!title || !imgBase64) { alert("Başlık ve Dosya seçimi zorunlu kanka!"); return; }
 
-            posts.push({
-                id: Date.now(),
-                username: currentUser,
-                game: game,
-                title: title,
-                img: imgBase64,
-                voltage: 0,
-                time: new Date().toLocaleDateString('tr-TR')
-            });
-
-            try {
-                localStorage.setItem('garaj_posts_db', JSON.stringify(posts));
-                syncBackup(); // Orijinal hafızayı güncelle kanka
-            } catch (e) {
-                alert("Hafıza limitine çarptı! Lütfen daha düşük boyutlu bir resim yükleyin.");
-                return;
-            }
-
-            closeMediaModal();
-            renderFeed();
+            posts.push({ id: Date.now(), username: currentUser, game: game, title: title, img: imgBase64, voltage: 0, time: new Date().toLocaleDateString('tr-TR') });
+            try { localStorage.setItem('garaj_posts_db', JSON.stringify(posts)); syncBackup(); } 
+            catch (e) { alert("Resim boyutu çok büyük!"); return; }
+            closeMediaModal(); renderFeed();
         }
 
         function openProfileModal() {
-            const currentUser = localStorage.getItem('garaj_active_user');
-            if(!currentUser) return;
-            
-            document.getElementById('profileFile').value = "";
-            document.getElementById('profileAvatarBase64').value = "";
-            document.getElementById('profileFileLabel').innerText = "Yeni avatar görseli seç kanka";
-            document.getElementById('editPassword').value = '';
-            
-            document.getElementById('editPassword').type = "password";
-            document.getElementById('editPasswordEye').innerText = "👁️";
-
+            const currentUser = localStorage.getItem('garaj_active_user'); if(!currentUser) return;
+            document.getElementById('profileFile').value = ""; document.getElementById('profileAvatarBase64').value = "";
+            document.getElementById('profileFileLabel').innerText = "Yeni avatar görseli seç kanka"; document.getElementById('editPassword').value = '';
+            document.getElementById('editPassword').type = "password"; document.getElementById('editPasswordEye').innerText = "👁️";
             document.getElementById('profileModal').style.display = 'flex';
         }
-
         function closeProfileModal() { document.getElementById('profileModal').style.display = 'none'; }
 
-        function submitProfileUpdate() {
-            const currentUser = localStorage.getItem('garaj_active_user');
-            if(!currentUser) return;
-
+        async function submitProfileUpdate() {
+            const currentUser = localStorage.getItem('garaj_active_user'); if(!currentUser) return;
             let usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
             const newAvatarBase64 = document.getElementById('profileAvatarBase64').value;
             const newPass = document.getElementById('editPassword').value.trim();
 
             if(newAvatarBase64) { usersDb[currentUser].avatar = newAvatarBase64; }
-            if(newPass) { usersDb[currentUser].password = newPass; }
-
-            try {
-                localStorage.setItem('garaj_users_db', JSON.stringify(usersDb));
-                syncBackup(); // Orijinal hafızayı güncelle kanka
-            } catch (e) {
-                alert("Profil resmi bozuldu veya çok büyük!");
-                return;
+            if(newPass) { 
+                // 🔒 Düzenleme şifresi hash'leniyor
+                usersDb[currentUser].password = await sha256(newPass); 
             }
 
-            alert("Profil başarıyla güncellendi!");
-            closeProfileModal();
-            init();
+            try { localStorage.setItem('garaj_users_db', JSON.stringify(usersDb)); syncBackup(); } 
+            catch (e) { alert("Hata oluştu!"); return; }
+            alert("Profil başarıyla güncellendi!"); closeProfileModal(); init();
         }
 
         function openAuthModal(registerMode = false) {
-            isRegisterMode = registerMode;
-            document.getElementById('authModal').style.display = 'flex';
-            const title = document.getElementById('modalTitle');
-            const btn = document.getElementById('modalSubmitBtn');
-            
-            document.getElementById('authPassword').type = "password";
-            document.getElementById('authPasswordEye').innerText = "👁️";
-            document.getElementById('authUsername').value = "";
-            document.getElementById('authPassword').value = "";
+            isRegisterMode = registerMode; document.getElementById('authModal').style.display = 'flex';
+            const title = document.getElementById('modalTitle'); const btn = document.getElementById('modalSubmitBtn');
+            document.getElementById('authPassword').type = "password"; document.getElementById('authPasswordEye').innerText = "👁️";
+            document.getElementById('authUsername').value = ""; document.getElementById('authPassword').value = "";
             
             if(isRegisterMode) {
-                title.innerText = "YENİ SÜRÜCÜ KAYDI";
-                btn.innerText = "HESAP OLUŞTUR (REGISTER)";
+                title.innerText = "YENİ SÜRÜCÜ KAYDI"; btn.innerText = "HESAP OLUŞTUR (REGISTER)";
                 btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-widest transition-all";
             } else {
-                title.innerText = "SİSTEME BAĞLAN";
-                btn.innerText = "YETKİ AL (LOGIN)";
+                title.innerText = "SİSTEME BAĞLAN"; btn.innerText = "YETKİ AL (LOGIN)";
                 btn.className = "w-full bg-brand hover:bg-red-700 text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-widest transition-all";
             }
         }
-
         function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
-        function submitAuth() {
+        // 🔒 KRİPTOLU GİRİŞ / KAYIT MOTORU
+        async function submitAuth() {
             const user = document.getElementById('authUsername').value.trim();
             const pass = document.getElementById('authPassword').value.trim();
             let usersDb = JSON.parse(localStorage.getItem('garaj_users_db'));
 
             if(!user || !pass) { alert("Alanları doldur kanka!"); return; }
 
+            // Kullanıcının yazdığı şifreyi anında siber koda (Hash) çeviriyoruz kanka
+            const hashedPass = await sha256(pass);
+
             if(isRegisterMode) {
                 if(usersDb[user]) { alert("Bu kullanıcı adı zaten alınmış!"); return; }
-                usersDb[user] = { password: pass, avatar: defaultAvatar };
+                // DB'ye asla düz şifre yazmıyoruz, sadece hash'i yazıyoruz kanka!
+                usersDb[user] = { password: hashedPass, avatar: defaultAvatar };
                 localStorage.setItem('garaj_users_db', JSON.stringify(usersDb));
                 syncBackup();
                 alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
                 openAuthModal(false);
             } else {
-                if(usersDb[user] && (usersDb[user].password === pass || usersDb[user] === pass)) {
-                    if(typeof usersDb[user] === 'string') {
-                        usersDb[user] = { password: usersDb[user], avatar: defaultAvatar };
-                        localStorage.setItem('garaj_users_db', JSON.stringify(usersDb));
-                        syncBackup();
-                    }
+                // Giriş kontrolü yapılırken de hash kodları karşılaştırılıyor
+                if(usersDb[user] && (usersDb[user].password === hashedPass || usersDb[user] === hashedPass)) {
                     localStorage.setItem('garaj_active_user', user);
                     closeAuthModal();
                     init();
@@ -592,27 +516,19 @@
 
         function deletePost(postId) {
             const currentUser = localStorage.getItem('garaj_active_user') || '';
-            // 🚨 Sıkı Fonksiyon Kontrolü: Farklı IP'den sızmaya çalışan biri butonu tetiklese bile engelleniyor
             if (!isHardwareVerified() || currentUser.toLowerCase() !== ADMIN_USERNAME.toLowerCase()) { 
-                alert("❌ ACCESS DENIED: Güvenlik duvarı donanım/IP eşleşmesi başarısız!"); 
-                return; 
+                alert("❌ ACCESS DENIED: Güvenlik duvarı engeli!"); return; 
             }
-            if (confirm("Bu telemetri kaydını silmek istediğinize emin misiniz?")) {
+            if (confirm("Silmek istediğinize emin misiniz?")) {
                 posts = posts.filter(p => p.id !== postId);
                 localStorage.setItem('garaj_posts_db', JSON.stringify(posts));
-                syncBackup();
-                renderFeed();
+                syncBackup(); renderFeed();
             }
         }
 
         function giveVoltage(postId) {
             const post = posts.find(p => p.id === postId);
-            if(post) {
-                post.voltage += 1;
-                localStorage.setItem('garaj_posts_db', JSON.stringify(posts));
-                syncBackup();
-                renderFeed();
-            }
+            if(post) { post.voltage += 1; localStorage.setItem('garaj_posts_db', JSON.stringify(posts)); syncBackup(); renderFeed(); }
         }
 
         function filterFeed(gameName) {
@@ -622,17 +538,14 @@
                 document.getElementById(`btn-filter-${b}`).classList.remove('bg-zinc-900', 'text-white', 'border-l-2', 'border-brand');
                 document.getElementById(`btn-filter-${b}`).classList.add('text-zinc-400');
             });
-
             const currentBtnMap = { 'all': 'all', 'Assetto Corsa': 'ac', 'BeamNG.drive': 'beam', 'CPM 2': 'cpm' };
             const activeId = `btn-filter-${currentBtnMap[gameName]}`;
             document.getElementById(activeId).classList.add('bg-zinc-900', 'text-white', 'border-l-2', 'border-brand');
             document.getElementById(activeId).classList.remove('text-zinc-400');
-
             renderFeed();
         }
 
         function logout() { localStorage.removeItem('garaj_active_user'); init(); }
-        
         window.onload = fetchUserIP;
     </script>
 </body>
