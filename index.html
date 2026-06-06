@@ -267,21 +267,21 @@
             const logPanel = document.getElementById('securityLog');
 
             if(currentUser) {
-                const isUtku = (currentUser.toLowerCase() === ADMIN_USERNAME.toLowerCase());
-                const isAdminVerified = isUtku && isHardwareVerified();
+                const isAdminUser = (currentUser.toLowerCase() === ADMIN_USERNAME.toLowerCase());
+                const isAdminVerified = isAdminUser && isHardwareVerified();
                 const userAvatar = (cachedUsers[currentUser] && cachedUsers[currentUser].avatar) ? cachedUsers[currentUser].avatar : defaultAvatar;
 
                 authZone.innerHTML = `
-                    <span class="text-xs font-bold ${isUtku ? 'text-brand' : 'text-zinc-400'} font-mono">${currentUser}${isAdminVerified ? ' [ROOT]' : ''}</span>
+                    <span class="text-xs font-bold ${isAdminUser ? 'text-brand' : 'text-zinc-400'} font-mono">${currentUser}${isAdminVerified ? ' [ROOT]' : ''}</span>
                     <button onclick="logout()" class="text-[11px] text-zinc-500 hover:text-brand transition font-mono ml-2">MOLA VER</button>
                 `;
 
                 userInfo.innerHTML = `
                     <div class="flex items-center gap-3 mb-3">
-                        <img src="${userAvatar}" class="w-11 h-11 rounded border ${isUtku ? 'border-brand' : 'border-zinc-700'} object-cover">
+                        <img src="${userAvatar}" class="w-11 h-11 rounded border ${isAdminUser ? 'border-brand' : 'border-zinc-700'} object-cover">
                         <div>
                             <p class="font-bold text-white text-sm font-mono">@${currentUser}</p>
-                            <p class="text-[9px] font-mono ${isUtku ? 'text-brand' : 'text-zinc-500'} mt-1 tracking-widest">
+                            <p class="text-[9px] font-mono ${isAdminUser ? 'text-brand' : 'text-zinc-500'} mt-1 tracking-widest">
                                 ${isAdminVerified ? 'SYSTEM_ROOT_ACTIVE' : 'CLOUD_LINK_ACTIVE'}
                             </p>
                         </div>
@@ -291,7 +291,7 @@
                     </button>
                 `;
 
-                if (isUtku) {
+                if (isAdminUser) {
                     if (isHardwareVerified()) {
                         logPanel.innerHTML = `[CLOUD SUCCESS] ROOT Onaylandı. IP: ${userDetectedIP} • Siber Kalkan: BULUTTA AKTİF`;
                         logPanel.style.color = '#00ff00';
@@ -365,7 +365,6 @@
                     : '';
                 const currentPostAvatar = (cachedUsers[post.username] && cachedUsers[post.username].avatar) ? cachedUsers[post.username].avatar : defaultAvatar;
 
-                // Yorumları Ayrıştır (Text/JSON Korumalı)
                 let commentsListHTML = '';
                 let postComments = [];
                 try {
@@ -430,7 +429,6 @@
                             </button>
                             <span class="text-xs text-zinc-500 font-mono">💬 ${postComments.length} Yorum</span>
                         </div>
-                        <!-- YORUM ALANI CONTAINER -->
                         <div class="p-4 bg-zinc-950/30">
                             <div class="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                                 ${commentsListHTML}
@@ -450,14 +448,12 @@
             if(!currentUser) { alert("Önce giriş yapmalısın kanka!"); return; }
             if(!commentText) return;
 
-            // Yeni yorum nesnesi oluşturuyoruz
             const newCommentObj = {
                 username: currentUser,
                 text: commentText,
                 time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
             };
 
-            // RPC Fonksiyonu Çağrısı (400 Bad Request Çözümü)
             const { error } = await _supabase.rpc('append_comment_to_post', {
                 post_id: postId,
                 new_comment: JSON.stringify(newCommentObj)
