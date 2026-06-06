@@ -442,7 +442,7 @@
             });
         }
 
-      async function submitComment(postId) {
+    async function submitComment(postId) {
     const input = document.getElementById(`commentInput_${postId}`);
     const commentText = input.value.trim();
     const currentUser = localStorage.getItem('garaj_active_user');
@@ -473,6 +473,9 @@
     await fetchUsersCache(); 
     await renderFeed();
 }
+         
+
+    
             // En güncel post verisini doğrudan buluttan çekiyoruz
             let { data: currentPostData } = await _supabase.from('garaj_posts').select('comments').eq('id', postId).single();
             
