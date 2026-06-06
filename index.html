@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GARAJ TEİAŞ // Cloud Edition</title>
     
-    <!-- TAB LOGOSU (FAVICON) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a0b0d'/><circle cx='50' cy='50' r='30' stroke='%23ffffff' stroke-width='6' fill='none'/><circle cx='50' cy='50' r='20' stroke='%23dc2626' stroke-width='4' fill='none'/><path d='M50 10 L50 90 M10 50 L90 50' stroke='%23ffffff' stroke-width='4'/><circle cx='50' cy='50' r='6' fill='%23ffffff'/></svg>">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
@@ -43,13 +40,12 @@
 </head>
 <body class="bg-darkBg text-zinc-200 font-sans antialiased bg-carbon selection:bg-brand selection:text-white">
 
-    <!-- TOP NAVIGATION -->
     <nav class="bg-panelBg/90 backdrop-blur-md border-b border-zinc-800/80 sticky top-0 z-50 px-4 lg:px-8 shadow-xl">
         <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.0 LIVE_CLOUD</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.2 CLOUD_TALK</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -61,11 +57,9 @@
         </div>
     </nav>
 
-    <!-- ANA DASHBOARD DÜZENİ -->
     <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
-            <!-- SOL PANEL -->
             <aside class="space-y-6">
                 <div class="stealth-panel rounded-xl p-5 shadow-2xl relative overflow-hidden">
                     <p class="text-[10px] font-mono text-zinc-500 mb-4 uppercase tracking-widest border-b border-zinc-800/60 pb-1">TELEMETRİ MERKEZİ</p>
@@ -80,7 +74,6 @@
                 </div>
             </aside>
 
-            <!-- SAĞ KISIM -->
             <section class="col-span-1 lg:col-span-3 space-y-6">
                 <div id="feedContainer" class="space-y-6"></div>
 
@@ -91,7 +84,6 @@
         </div>
     </main>
 
-    <!-- MODAL: GİRİŞ YAP & KAYIT OL -->
     <div id="authModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="stealth-panel bg-panelBg w-full max-w-md rounded-xl p-6 border border-zinc-800 shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
@@ -119,7 +111,6 @@
         </div>
     </div>
 
-    <!-- MODAL: YENİ GÖNDERİ -->
     <div id="mediaModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="stealth-panel bg-panelBg w-full max-w-lg rounded-xl p-6 border border-zinc-800 shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
@@ -151,7 +142,42 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT ENGINE -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="stealth-panel bg-panelBg w-full max-w-md rounded-xl p-6 border border-zinc-800 shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
+                <h3 class="text-xs font-black tracking-widest text-white font-mono uppercase">⚙️ HESAP AYARLARI</h3>
+                <button onclick="closeSettingsModal()" class="text-zinc-500 hover:text-white transition text-xl font-mono">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-mono text-zinc-400 mb-1.5 uppercase tracking-wider">Profil Resmi (PP) Değiştir</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="avatarFile" class="flex flex-col items-center justify-center w-full h-24 border-2 border-zinc-800 border-dashed rounded-lg cursor-pointer bg-zinc-950/50">
+                            <div class="flex flex-col items-center justify-center pt-3 pb-3">
+                                <span class="text-xl mb-1">📸</span>
+                                <p id="avatarFileLabel" class="text-xs text-zinc-400 font-mono text-center px-4">Yeni Resim Seç (Max 2MB)</p>
+                            </div>
+                            <input id="avatarFile" type="file" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'avatarFileLabel', 'settingsAvatarBase64')" />
+                        </label>
+                    </div>
+                    <input type="hidden" id="settingsAvatarBase64" value="">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono text-zinc-400 mb-1.5 uppercase tracking-wider">Yeni Şifre (Değiştirmek istemiyorsan boş bırak)</label>
+                    <div class="relative">
+                        <input type="password" id="settingsNewPassword" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-4 pr-12 py-3 text-sm focus:outline-none input-focus text-white font-mono" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('settingsNewPassword', 'settingsSettingsEye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">
+                            <span id="settingsSettingsEye">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="pt-2">
+                    <button onclick="submitSettingsUpdate()" class="w-full bg-brand text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-widest">DEĞİŞİKLİKLERİ KAYDET</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- !!! SUPABASE BAĞLANTI AYARLARI !!! ---
         const SUPABASE_URL = "https://legvpdyyizsqqqafcyhu.supabase.co"; 
@@ -240,7 +266,7 @@
                 `;
 
                 userInfo.innerHTML = `
-                    <div class="flex items-center gap-3 mb-4">
+                    <div class="flex items-center gap-3 mb-3">
                         <img src="${userAvatar}" class="w-11 h-11 rounded border ${isUtku ? 'border-brand' : 'border-zinc-700'} object-cover">
                         <div>
                             <p class="font-bold text-white text-sm font-mono">@${currentUser}</p>
@@ -249,6 +275,9 @@
                             </p>
                         </div>
                     </div>
+                    <button onclick="openSettingsModal()" class="w-full text-center bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800/80 text-zinc-400 hover:text-white rounded-lg py-2 text-[11px] font-mono font-bold transition-all uppercase tracking-wider mt-2">
+                        ⚙️ HESAP AYARLARI
+                    </button>
                 `;
 
                 if (isUtku) {
@@ -274,6 +303,37 @@
             }
         }
 
+        function openSettingsModal() {
+            const currentUser = localStorage.getItem('garaj_active_user');
+            if(!currentUser) return;
+            document.getElementById('settingsNewPassword').value = "";
+            document.getElementById('settingsAvatarBase64').value = "";
+            document.getElementById('avatarFileLabel').innerText = "Yeni Resim Seç (Max 2MB)";
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+        function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+
+        async function submitSettingsUpdate() {
+            const currentUser = localStorage.getItem('garaj_active_user');
+            if(!currentUser) return;
+
+            const newPass = document.getElementById('settingsNewPassword').value.trim();
+            const newAvatar = document.getElementById('settingsAvatarBase64').value;
+
+            if(!newPass && !newAvatar) { alert("Herhangi bir değişiklik yapmadın kanka!"); return; }
+
+            let updateData = {};
+            if(newAvatar) updateData.avatar = newAvatar;
+            if(newPass) updateData.password = await sha256(newPass);
+
+            const { error } = await _supabase.from('garaj_users').update(updateData).eq('username', currentUser);
+            if(error) { alert("Ayarlar buluta senkronize edilirken hata oluştu!"); return; }
+
+            alert("Hesap ayarların başarıyla güncellendi kanka! 🔥");
+            closeSettingsModal();
+            await init(); 
+        }
+
         async function renderFeed() {
             const container = document.getElementById('feedContainer');
             container.innerHTML = `<div class="text-center text-zinc-500 font-mono text-xs py-4">⏳ Buluttan veriler senkronize ediliyor...</div>`;
@@ -294,6 +354,45 @@
                     ? `<button onclick="deletePost(${post.id})" class="text-[9px] font-mono bg-brand/10 hover:bg-brand text-brand hover:text-white border border-brand/30 px-2 py-1 rounded">SİL</button>` 
                     : '';
                 const currentPostAvatar = (cachedUsers[post.username] && cachedUsers[post.username].avatar) ? cachedUsers[post.username].avatar : defaultAvatar;
+
+                // Yorumları Ayrıştır (JSON yapısı)
+                let commentsListHTML = '';
+                let postComments = [];
+                try {
+                    if (post.comments) {
+                        postComments = typeof post.comments === 'string' ? JSON.parse(post.comments) : post.comments;
+                    }
+                } catch(e) { postComments = []; }
+
+                if(postComments && postComments.length > 0) {
+                    postComments.forEach(c => {
+                        const commenterAvatar = (cachedUsers[c.username] && cachedUsers[c.username].avatar) ? cachedUsers[c.username].avatar : defaultAvatar;
+                        commentsListHTML += `
+                            <div class="flex items-start gap-2 text-xs border-b border-zinc-900/40 pb-2 last:border-none">
+                                <img src="${commenterAvatar}" class="w-5 h-5 rounded-full object-cover border border-zinc-800 mt-0.5">
+                                <div class="bg-zinc-900/60 rounded-lg p-2 flex-1">
+                                    <div class="flex items-center justify-between mb-0.5">
+                                        <span class="font-bold text-zinc-300 font-mono text-[11px]">@${c.username}</span>
+                                        <span class="text-[9px] text-zinc-600 font-mono">${c.time || ''}</span>
+                                    </div>
+                                    <p class="text-zinc-400 break-all font-sans">${c.text}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    commentsListHTML = `<p class="text-[11px] text-zinc-600 font-mono italic px-1">Henüz yorum yapılmamış, ilk gazı sen ver kanka...</p>`;
+                }
+
+                // Yorum Yazma Alanı (Sadece giriş yaptıysa görünür)
+                const commentFormHTML = currentUser 
+                    ? `
+                    <div class="mt-4 pt-3 border-t border-zinc-900 flex gap-2">
+                        <input type="text" id="commentInput_${post.id}" placeholder="Hatta bir yorum fırlat..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none input-focus text-white">
+                        <button onclick="submitComment(${post.id}, '${post.comments ? borderEscape(JSON.stringify(postComments)) : '[]'}')" class="bg-zinc-900 hover:bg-brand text-zinc-400 hover:text-white px-3 py-2 rounded-lg text-xs font-mono font-bold transition-all uppercase">GÖNDER</button>
+                    </div>
+                    `
+                    : `<p class="text-[10px] font-mono text-zinc-600 text-center mt-3 pt-2 border-t border-zinc-900/60">Yorum yazmak için sisteme bağlanmalısın kanka.</p>`;
 
                 container.innerHTML += `
                     <div class="stealth-panel rounded-xl overflow-hidden shadow-2xl">
@@ -316,14 +415,62 @@
                                 <p class="text-base font-bold tracking-wide text-white uppercase font-mono">${post.title}</p>
                             </div>
                         </div>
-                        <div class="p-3.5 flex items-center gap-5 text-zinc-400 bg-zinc-950/20">
+                        <div class="p-3.5 flex items-center gap-5 text-zinc-400 bg-zinc-950/20 border-b border-zinc-900/60">
                             <button onclick="giveVoltage(${post.id}, ${post.voltage})" class="hover:text-brand flex items-center gap-1.5 transition text-zinc-300 font-mono text-xs font-bold">
                                 <span class="text-amber-500">⚡</span> <span>${post.voltage} HP</span>
                             </button>
+                            <span class="text-xs text-zinc-500 font-mono">💬 ${postComments.length} Yorum</span>
+                        </div>
+                        <div class="p-4 bg-zinc-950/30">
+                            <div class="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                                ${commentsListHTML}
+                            </div>
+                            ${commentFormHTML}
                         </div>
                     </div>
                 `;
             });
+        }
+
+        // Tırnak işaretlerinin HTML attribute içinde patlamasını önleyen yardımcı fonksiyon
+        function borderEscape(str) {
+            return str.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+        }
+
+        async function submitComment(postId, oldCommentsJSON) {
+            const input = document.getElementById(`commentInput_${postId}`);
+            const commentText = input.value.trim();
+            const currentUser = localStorage.getItem('garaj_active_user');
+            
+            if(!currentUser) { alert("Önce giriş yapmalısın kanka!"); return; }
+            if(!commentText) return;
+
+            let commentsArray = [];
+            try {
+                // HTML'den escaped gelen stringi geri çözüp array yapıyoruz
+                const cleanedJSON = oldCommentsJSON.replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+                commentsArray = JSON.parse(cleanedJSON);
+            } catch(e) { commentsArray = []; }
+
+            // Yeni yorum objesini ekle
+            const newCommentObj = {
+                username: currentUser,
+                text: commentText,
+                time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+            };
+            commentsArray.push(newCommentObj);
+
+            // Supabase bulut veritabanını güncelle
+            const { error } = await _supabase.from('garaj_posts').update({ comments: commentsArray }).eq('id', postId);
+            
+            if(error) {
+                alert("Yorum hatta gönderilirken bulut hatası oluştu!");
+                console.error(error);
+                return;
+            }
+
+            input.value = "";
+            await renderFeed();
         }
 
         function openMediaModal() {
@@ -347,7 +494,8 @@
                 title: title, 
                 img: imgBase64, 
                 voltage: 0, 
-                time: new Date().toLocaleDateString('tr-TR') 
+                time: new Date().toLocaleDateString('tr-TR'),
+                comments: [] // Yeni postlar sıfır yorumla başlar
             };
 
             const { error } = await _supabase.from('garaj_posts').insert([newPost]);
