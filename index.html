@@ -49,7 +49,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.3 LIVE_SYNC</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.4 CLOUD_FIX</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -192,7 +192,7 @@
     <script>
         // --- !!! SUPABASE BAĞLANTI AYARLARI !!! ---
         const SUPABASE_URL = "https://legvpdyyizsqqqafcyhu.supabase.co"; 
-        const SUPABASE_KEY = "sb_publishable_c81XX7UrvV2J0silxW7xoA_ZP18UjYD";
+        const SUPABASE_KEY = "sb_publishable_c81XX7UrvV2J0silxW7xoA_ZP18UjYD"; // sb_publishable ile başlayan key
         // ------------------------------------------
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -365,7 +365,7 @@
                     : '';
                 const currentPostAvatar = (cachedUsers[post.username] && cachedUsers[post.username].avatar) ? cachedUsers[post.username].avatar : defaultAvatar;
 
-                // Yorumları Ayrıştır (JSON yapısı)
+                // Yorumları Ayrıştır (Text/JSON Korumalı)
                 let commentsListHTML = '';
                 let postComments = [];
                 try {
@@ -394,7 +394,6 @@
                     commentsListHTML = `<p class="text-[11px] text-zinc-600 font-mono italic px-1">Henüz yorum yapılmamış, ilk gazı sen ver kanka...</p>`;
                 }
 
-                // Yorum Yazma Alanı (Sadece giriş yaptıysa görünür)
                 const commentFormHTML = currentUser 
                     ? `
                     <div class="mt-4 pt-3 border-t border-zinc-900 flex gap-2">
@@ -451,15 +450,17 @@
             if(!currentUser) { alert("Önce giriş yapmalısın kanka!"); return; }
             if(!commentText) return;
 
-            // En güncel post verisini doğrudan veritabanından çek (Hizalama hatasını engeller)
+            // En güncel post verisini doğrudan buluttan çekiyoruz
             let { data: currentPostData } = await _supabase.from('garaj_posts').select('comments').eq('id', postId).single();
             
             let commentsArray = [];
             if (currentPostData && currentPostData.comments) {
-                commentsArray = typeof currentPostData.comments === 'string' ? JSON.parse(currentPostData.comments) : currentPostData.comments;
+                try {
+                    commentsArray = typeof currentPostData.comments === 'string' ? JSON.parse(currentPostData.comments) : currentPostData.comments;
+                } catch(e) { commentsArray = []; }
             }
 
-            // Yeni yorum objesini ekle
+            // Yeni yorum nesnesi
             const newCommentObj = {
                 username: currentUser,
                 text: commentText,
@@ -467,8 +468,8 @@
             };
             commentsArray.push(newCommentObj);
 
-            // Supabase bulut veritabanını güncelle
-            const { error } = await _supabase.from('garaj_posts').update({ comments: commentsArray }).eq('id', postId);
+            // 400 Bad Request Çözümü: Veriyi stringify edip metin olarak buluta basıyoruz
+            const { error } = await _supabase.from('garaj_posts').update({ comments: JSON.stringify(commentsArray) }).eq('id', postId);
             
             if(error) {
                 alert("Yorum hatta gönderilirken bulut hatası oluştu!");
@@ -476,7 +477,7 @@
             }
 
             input.value = "";
-            await fetchUsersCache(); // Kullanıcı listesini tazele
+            await fetchUsersCache(); 
             await renderFeed();
         }
 
@@ -495,6 +496,7 @@
             const currentUser = localStorage.getItem('garaj_active_user') || 'Ziyaretçi';
             if(!title || !imgBase64) { alert("Başlık ve Dosya seçimi zorunlu kanka!"); return; }
 
+            // Gönderilerde de comments sütununun boş string dizisi şeklinde durmasını sağlıyoruz
             const newPost = { 
                 id: Date.now(), 
                 username: currentUser, 
@@ -502,7 +504,7 @@
                 img: imgBase64, 
                 voltage: 0, 
                 time: new Date().toLocaleDateString('tr-TR'),
-                comments: []
+                comments: JSON.stringify([])
             };
 
             const { error } = await _supabase.from('garaj_posts').insert([newPost]);
@@ -567,6 +569,7 @@
         }
 
         async function giveVoltage(postId, currentVoltage) {
+            // Voltaj/HP arttırma işlemi
             await _supabase.from('garaj_posts').update({ voltage: currentVoltage + 1 }).eq('id', postId);
             await fetchUsersCache();
             await renderFeed();
