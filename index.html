@@ -49,7 +49,7 @@
             <div class="flex items-center gap-3">
                 <div class="w-2.5 h-6 bg-brand rounded-sm"></div>
                 <span class="text-md font-black tracking-widest text-white uppercase font-mono">GARAJ <span class="text-zinc-500">TEİAŞ</span></span>
-                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.4 CLOUD_FIX</span>
+                <span class="text-[9px] bg-zinc-900 text-zinc-400 font-mono px-2 py-0.5 rounded border border-zinc-800/80 tracking-widest">v5.5 RPC_FIX</span>
             </div>
 
             <div class="flex items-center gap-4">
@@ -112,7 +112,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="pt-2">
+                <div class="div pt-2">
                     <button onclick="submitAuth()" id="modalSubmitBtn" class="w-full bg-brand text-white font-bold py-3.5 rounded-lg text-xs uppercase tracking-widest">YETKİ AL (LOGIN)</button>
                 </div>
             </div>
@@ -192,7 +192,7 @@
     <script>
         // --- !!! SUPABASE BAĞLANTI AYARLARI !!! ---
         const SUPABASE_URL = "https://legvpdyyizsqqqafcyhu.supabase.co"; 
-        const SUPABASE_KEY = "sb_publishable_c81XX7UrvV2J0silxW7xoA_ZP18UjYD"; // sb_publishable ile başlayan key
+        const SUPABASE_KEY = "sb_publishable_c81XX7UrvV2J0silxW7xoA_ZP18UjYD"; 
         // ------------------------------------------
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -442,62 +442,29 @@
             });
         }
 
-    async function submitComment(postId) {
-    const input = document.getElementById(`commentInput_${postId}`);
-    const commentText = input.value.trim();
-    const currentUser = localStorage.getItem('garaj_active_user');
-    
-    if(!currentUser) { alert("Önce giriş yapmalısın kanka!"); return; }
-    if(!commentText) return;
-
-    // Yeni yorum nesnesi oluşturuyoruz
-    const newCommentObj = {
-        username: currentUser,
-        text: commentText,
-        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-    };
-
-    // 400 Bad Request Hata Çözümü: Doğrudan veritabanı fonksiyonunu (RPC) tetikliyoruz
-    const { error } = await _supabase.rpc('append_comment_to_post', {
-        post_id: postId,
-        new_comment: JSON.stringify(newCommentObj)
-    });
-    
-    if(error) {
-        console.error("Bulut Hatası Detayı:", error);
-        alert("Yorum hatta gönderilirken bulut hatası oluştu!");
-        return;
-    }
-
-    input.value = "";
-    await fetchUsersCache(); 
-    await renderFeed();
-}
-         
-
-    
-            // En güncel post verisini doğrudan buluttan çekiyoruz
-            let { data: currentPostData } = await _supabase.from('garaj_posts').select('comments').eq('id', postId).single();
+        async function submitComment(postId) {
+            const input = document.getElementById(`commentInput_${postId}`);
+            const commentText = input.value.trim();
+            const currentUser = localStorage.getItem('garaj_active_user');
             
-            let commentsArray = [];
-            if (currentPostData && currentPostData.comments) {
-                try {
-                    commentsArray = typeof currentPostData.comments === 'string' ? JSON.parse(currentPostData.comments) : currentPostData.comments;
-                } catch(e) { commentsArray = []; }
-            }
+            if(!currentUser) { alert("Önce giriş yapmalısın kanka!"); return; }
+            if(!commentText) return;
 
-            // Yeni yorum nesnesi
+            // Yeni yorum nesnesi oluşturuyoruz
             const newCommentObj = {
                 username: currentUser,
                 text: commentText,
                 time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
             };
-            commentsArray.push(newCommentObj);
 
-            // 400 Bad Request Çözümü: Veriyi stringify edip metin olarak buluta basıyoruz
-            const { error } = await _supabase.from('garaj_posts').update({ comments: JSON.stringify(commentsArray) }).eq('id', postId);
+            // RPC Fonksiyonu Çağrısı (400 Bad Request Çözümü)
+            const { error } = await _supabase.rpc('append_comment_to_post', {
+                post_id: postId,
+                new_comment: JSON.stringify(newCommentObj)
+            });
             
             if(error) {
+                console.error("Bulut RPC Hatası:", error);
                 alert("Yorum hatta gönderilirken bulut hatası oluştu!");
                 return;
             }
@@ -522,7 +489,6 @@
             const currentUser = localStorage.getItem('garaj_active_user') || 'Ziyaretçi';
             if(!title || !imgBase64) { alert("Başlık ve Dosya seçimi zorunlu kanka!"); return; }
 
-            // Gönderilerde de comments sütununun boş string dizisi şeklinde durmasını sağlıyoruz
             const newPost = { 
                 id: Date.now(), 
                 username: currentUser, 
@@ -595,7 +561,6 @@
         }
 
         async function giveVoltage(postId, currentVoltage) {
-            // Voltaj/HP arttırma işlemi
             await _supabase.from('garaj_posts').update({ voltage: currentVoltage + 1 }).eq('id', postId);
             await fetchUsersCache();
             await renderFeed();
